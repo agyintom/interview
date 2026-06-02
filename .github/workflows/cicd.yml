@@ -1,57 +1,25 @@
-name: Build and Deploy
+name: Build and Deploy Local
 
 on:
   push:
     branches:
       - main
 
-env:
-  IMAGE_NAME: mynginx
-
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  deploy:
+    runs-on: self-hosted
 
     steps:
-      - name: Checkout Source
-        uses: actions/checkout@v4
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+      - uses: actions/checkout@v4
 
       - name: Build Image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/mynginx:${{ github.sha }} .
+          docker build -t mynginx:${{ github.sha }} .
+          docker tag mynginx:${{ github.sha }} mynginx:latest
 
-      - name: Push Image
-        run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/mynginx:${{ github.sha }}
-
-      - name: Save Image Tag
-        run: |
-          echo "IMAGE=${{ secrets.DOCKER_USERNAME }}/mynginx:${{ github.sha }}" >> $GITHUB_ENV
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Source
-        uses: actions/checkout@v4
-
-      - name: Configure kubeconfig
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
-
-      - name: Update Deployment
+      - name: Deploy
         run: |
           kubectl set image deployment/my-nginx \
-          my-nginx=${{ secrets.DOCKER_USERNAME }}/mynginx:${{ github.sha }}
+          my-nginx=mynginx:${{ github.sha }}
 
-      - name: Verify Rollout
-        run: |
           kubectl rollout status deployment/my-nginx
