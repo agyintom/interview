@@ -1,21 +1,16 @@
 - name: Build
   run: |
-    docker build -t mynginx:${{ github.sha }} .
+    docker build -t 192.168.178.115:5000/mynginx:${{ github.sha }} .
 
-- name: Export
+- name: Push
   run: |
-    docker save mynginx:${{ github.sha }} -o mynginx.tar
+    docker push 192.168.178.115:5000/mynginx:${{ github.sha }}
 
-- name: Copy to Nodes
+- name: Deploy
   run: |
-    scp mynginx.tar node01:/tmp/
-    scp mynginx.tar node02:/tmp/
+    kubectl set image deployment/my-nginx \
+      my-nginx=192.168.178.115:5000/mynginx:${{ github.sha }}
 
-- name: Import on Nodes
+- name: Verify
   run: |
-    ssh node01 "sudo ctr -n k8s.io images import /tmp/mynginx.tar"
-    ssh node02 "sudo ctr -n k8s.io images import /tmp/mynginx.tar"
-
-- name: Rollout
-  run: |
-    kubectl rollout restart deployment my-nginx
+    kubectl rollout status deployment/my-nginx
