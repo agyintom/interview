@@ -63,3 +63,4 @@ spec:
     - port: 8080
       targetPort: 8080
       nodePort: 30080        # reach at http://localhost:30080 on kind/minikube/k3s
+    # reach at http://localhost:30080 on kind/minikube/k3s
