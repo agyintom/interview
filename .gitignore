@@ -1,0 +1,3 @@
+shell/actions-runner/
+**/node
+*.tar.gz
