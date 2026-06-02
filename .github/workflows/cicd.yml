@@ -1,25 +1,21 @@
-name: Build and Deploy Local
+- name: Build
+  run: |
+    docker build -t mynginx:${{ github.sha }} .
 
-on:
-  push:
-    branches:
-      - main
+- name: Export
+  run: |
+    docker save mynginx:${{ github.sha }} -o mynginx.tar
 
-jobs:
-  deploy:
-    runs-on: self-hosted
+- name: Copy to Nodes
+  run: |
+    scp mynginx.tar node01:/tmp/
+    scp mynginx.tar node02:/tmp/
 
-    steps:
-      - uses: actions/checkout@v4
+- name: Import on Nodes
+  run: |
+    ssh node01 "sudo ctr -n k8s.io images import /tmp/mynginx.tar"
+    ssh node02 "sudo ctr -n k8s.io images import /tmp/mynginx.tar"
 
-      - name: Build Image
-        run: |
-          docker build -t mynginx:${{ github.sha }} .
-          docker tag mynginx:${{ github.sha }} mynginx:latest
-
-      - name: Deploy
-        run: |
-          kubectl set image deployment/my-nginx \
-          my-nginx=mynginx:${{ github.sha }}
-
-          kubectl rollout status deployment/my-nginx
+- name: Rollout
+  run: |
+    kubectl rollout restart deployment my-nginx
