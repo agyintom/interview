@@ -1,31 +1,32 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: myNginx
+  name: my-nginx
 spec:
+  replicas: 1
   selector:
     matchLabels:
-      app: myNginx
-  replicas: 2
+      app: my-nginx
   template:
     metadata:
       labels:
-        app: myNgnx
+        app: my-nginx
     spec:
       containers:
-        - name: myNginx
-          image: nginx
-          ports:
-            - containerPort: 8000
+      - name: my-nginx
+        image: mynginx:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: myNginx
-  labels:
-    app: myNginx
+  name: my-nginx
 spec:
+  selector:
+    app: my-nginx
   ports:
-    - port: 8080
-    # reach at http://localhost:30080 on kind/minikube/k3s
+  - port: 80
+    targetPort: 80
+  type: NodePort
