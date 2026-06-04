@@ -10,7 +10,6 @@ env:
   IMAGE: mynginx
   DEPLOYMENT: my-nginx
   CONTAINER: my-nginx
-  NODE: 192.168.178.117
 
 jobs:
   build:
@@ -32,6 +31,9 @@ jobs:
     runs-on: self-hosted
     needs: build
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Push image to local registry
         run: |
           source shell/script.sh
@@ -60,14 +62,29 @@ jobs:
     runs-on: self-hosted
     needs: pre-pull
     steps:
-      - name: Update deployment image
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update image tag in yaml and commit to Git
         run: |
           source shell/script.sh
-          log_message "Updating ${{ env.DEPLOYMENT }} to ${{ github.sha }}..."
-          # Update image tag in yaml then apply the whole file
-          sed -i "s|image: .*|image: ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }}|" k8s/nginx.yaml
+          log_message "Setting image to ${{ github.sha }} in k8s/nginx.yaml..."
+          sed -i "s|image: .*mynginx.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }}|" k8s/nginx.yaml
+          grep "image:" k8s/nginx.yaml
+
+          git config user.email "ci@github-actions"
+          git config user.name "GitHub Actions"
+          git add k8s/nginx.yaml
+          git diff --cached --quiet || git commit -m "ci: update image to ${{ github.sha }} [skip ci]"
+          git push origin main
+          log_message "Image tag committed to Git."
+
+      - name: Apply manifest
+        run: |
+          source shell/script.sh
+          log_message "Applying k8s/nginx.yaml..."
           kubectl apply -f k8s/nginx.yaml
-          log_message "Deployment applied."
+          log_message "Manifest applied."
 
       - name: Wait for rollout
         run: |
