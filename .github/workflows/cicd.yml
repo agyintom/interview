@@ -10,7 +10,7 @@ env:
   IMAGE: mynginx
   DEPLOYMENT: my-nginx
   CONTAINER: my-nginx
-  NODE: k8s-node02
+  NODE: 192.168.178.117
 
 jobs:
   build:
