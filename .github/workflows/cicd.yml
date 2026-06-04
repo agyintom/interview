@@ -29,3 +29,9 @@ jobs:
       - name: Verify
         run: |
           kubectl rollout status deployment/my-nginx
+
+      #  Clean up local images to save disk space on your runner
+      - name: Post-Cleanup
+        if: always()
+        run: |
+          docker rmi 192.168.178.115:5000/mynginx:${{ github.sha }} || true
