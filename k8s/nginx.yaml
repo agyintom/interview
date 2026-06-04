@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: my-nginx
-        image: 192.168.178.115:5000/mynginx:0267013712735da9f43871432d6418d030d80aea
+        image: 192.168.178.115:5000/mynginx:c4fe8c5ca4234f6b32bc89ed8fd3f1759162ec79
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80
