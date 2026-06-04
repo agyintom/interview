@@ -13,6 +13,7 @@ env:
   IMAGE: mynginx
   DEPLOYMENT: my-nginx
   CONTAINER: my-nginx
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
@@ -20,7 +21,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Build Docker image
         run: |
@@ -35,7 +36,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Push image to local registry
         run: |
@@ -66,7 +67,7 @@ jobs:
     needs: pre-pull
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Update image tag in yaml and commit to Git
         run: |
