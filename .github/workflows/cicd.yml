@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+
 env:
   REGISTRY: 192.168.178.115:5000
   IMAGE: mynginx
@@ -74,6 +77,7 @@ jobs:
 
           git config user.email "ci@github-actions"
           git config user.name "GitHub Actions"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           git add k8s/nginx.yaml
           git diff --cached --quiet || git commit -m "ci: update image to ${{ github.sha }} [skip ci]"
           git push origin main
