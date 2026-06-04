@@ -5,47 +5,88 @@ on:
     branches:
       - main
 
-jobs:
-  deploy:
-    runs-on: self-hosted
+env:
+  REGISTRY: 192.168.178.115:5000
+  IMAGE: mynginx
+  DEPLOYMENT: my-nginx
+  CONTAINER: my-nginx
+  NODE: k8s-node02
 
+jobs:
+  build:
+    name: Build Image
+    runs-on: self-hosted
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build
+      - name: Build Docker image
         run: |
           source shell/script.sh
-          log_message "Starting Docker build..."
-          docker build -t 192.168.178.115:5000/mynginx:${{ github.sha }} .
-          log_message "Build finished."
+          log_message "Building image ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }}..."
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }} .
+          log_message "Build complete."
 
-      - name: Push
+  push:
+    name: Push to Registry
+    runs-on: self-hosted
+    needs: build
+    steps:
+      - name: Push image to local registry
         run: |
           source shell/script.sh
-          log_message "Pushing to local registry..."
-          docker push 192.168.178.115:5000/mynginx:${{ github.sha }}
-          log_message "Push successful."
+          log_message "Pushing ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }}..."
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }}
+          log_message "Push complete."
 
-      - name: Deploy
+  pre-pull:
+    name: Pre-pull on Nodes
+    runs-on: self-hosted
+    needs: push
+    steps:
+      - name: Pull image into k8s.io namespace on worker nodes
         run: |
           source shell/script.sh
-          log_message "Updating K8s image to ${{ github.sha }}..."
-          
-          # Pre-pull image into k8s.io namespace on each worker node
-          ssh k8s-node02 "sudo ctr -n k8s.io images pull --plain-http \
-            192.168.178.115:5000/mynginx:${{ github.sha }}"
-          
-          kubectl set image deployment/my-nginx \
-            my-nginx=192.168.178.115:5000/mynginx:${{ github.sha }}
-          
-          kubectl rollout status deployment/my-nginx
-          log_message "Rollout complete!"
+          log_message "Pre-pulling image on ${{ env.NODE }}..."
+          ssh ${{ env.NODE }} "sudo ctr -n k8s.io images pull --plain-http \
+            ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }}"
+          log_message "Pre-pull complete."
 
-      - name: Post-Cleanup
-        if: always()
+  deploy:
+    name: Deploy to Kubernetes
+    runs-on: self-hosted
+    needs: pre-pull
+    steps:
+      - name: Update deployment image
         run: |
           source shell/script.sh
-          log_message "Cleaning up local build image..."
-          docker rmi 192.168.178.115:5000/mynginx:${{ github.sha }} || true
+          log_message "Updating ${{ env.DEPLOYMENT }} to ${{ github.sha }}..."
+          kubectl set image deployment/${{ env.DEPLOYMENT }} \
+            ${{ env.CONTAINER }}=${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }}
+          log_message "Image updated."
 
+      - name: Wait for rollout
+        run: |
+          source shell/script.sh
+          log_message "Waiting for rollout to complete..."
+          kubectl rollout status deployment/${{ env.DEPLOYMENT }} --timeout=120s
+          log_message "Rollout complete."
+
+      - name: Verify pods are running
+        run: |
+          source shell/script.sh
+          kubectl get pods -l app=${{ env.DEPLOYMENT }} -o wide
+          log_message "Deployment verified."
+
+  cleanup:
+    name: Cleanup
+    runs-on: self-hosted
+    needs: deploy
+    if: always()
+    steps:
+      - name: Remove local build image
+        run: |
+          source shell/script.sh
+          log_message "Removing local image..."
+          docker rmi ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }} || true
+          log_message "Cleanup complete."
