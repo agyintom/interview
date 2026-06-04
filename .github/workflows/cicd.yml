@@ -31,8 +31,13 @@ jobs:
         run: |
           source shell/script.sh
           log_message "Updating K8s image to ${{ github.sha }}..."
+          
+          # Pre-pull image into k8s.io namespace on each worker node
+          ssh k8s-node02 "sudo ctr -n k8s.io images pull --plain-http \
+            192.168.178.115:5000/mynginx:${{ github.sha }}"
+          
           kubectl set image deployment/my-nginx \
-          my-nginx=192.168.178.115:5000/mynginx:${{ github.sha }}
+            my-nginx=192.168.178.115:5000/mynginx:${{ github.sha }}
           
           kubectl rollout status deployment/my-nginx
           log_message "Rollout complete!"
