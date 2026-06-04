@@ -1,12 +1,3 @@
 FROM nginx:alpine
-
-# Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
-
-# Copy static content
-COPY ./html /usr/share/nginx/html
-
-# Expose port matching your containerPort
+RUN echo "<h1>Hello! Built and released on $(date)</h1>" > /usr/share/nginx/html/index.html
 EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
