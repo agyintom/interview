@@ -48,7 +48,8 @@ jobs:
         run: |
           source shell/script.sh
           log_message "Pre-pulling image on ${{ env.NODE }}..."
-          ssh ${{ env.NODE }} "sudo ctr -n k8s.io images pull --plain-http \
+          ssh -o StrictHostKeyChecking=no admin@${{ env.NODE }} \
+            "sudo ctr -n k8s.io images pull --plain-http \
             ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }}"
           log_message "Pre-pull complete."
 
