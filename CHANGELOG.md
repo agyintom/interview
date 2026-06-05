@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.2.1 (2026-06-05)
+
+### Bug Fixes
+
+- Update app page layout
+  ([`fcabe98`](https://github.com/agyintom/interview/commit/fcabe98c7d754c229a3d9e7ce2dfc86b473e6389))
+
+
 ## v1.2.0 (2026-06-05)
 
 ### Features
