@@ -1,13 +1,14 @@
 [tool.semantic_release]
 version_toml = ["pyproject.toml:tool.semantic_release.version"]
 branch = "main"
-changelog_file = "CHANGELOG.md"
 build_command = ""
 upload_to_pypi = false
 upload_to_release = true
 commit_message = "ci: release {version} [skip ci]"
 
+[tool.semantic_release.version]
 version = "1.0.0"
+
 [tool.semantic_release.commit_parser_options]
 allowed_tags = ["feat", "fix", "perf", "refactor", "ci", "docs", "style", "chore"]
 minor_tags = ["feat"]
@@ -18,7 +19,7 @@ type = "github"
 token = { env = "GH_TOKEN" }
 
 [tool.semantic_release.changelog]
-changelog_file = "CHANGELOG.md"
+default_templates = { changelog_file = "CHANGELOG.md" }
 exclude_commit_patterns = [
   "ci:.*\\[skip ci\\]",
 ]
