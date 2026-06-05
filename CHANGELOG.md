@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.2.0 (2026-06-05)
+
+### Features
+
+- Add version info to app page
+  ([`10a2104`](https://github.com/agyintom/interview/commit/10a2104d20437ff1d77188c950c735ee39485653))
+
+
 ## v1.1.0 (2026-06-05)
 
 ### Features
