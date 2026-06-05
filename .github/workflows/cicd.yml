@@ -74,8 +74,10 @@ jobs:
           source shell/script.sh
           VERSION=${{ needs.release.outputs.version }}
           log_message "Building ${{ env.REGISTRY }}/${{ env.IMAGE }}:${VERSION}..."
-          # Dual-tag: semver for humans, SHA for traceability
           docker build \
+            --build-arg VERSION=${VERSION} \
+            --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
+            --build-arg GIT_SHA=${{ github.sha }} \
             -t ${{ env.REGISTRY }}/${{ env.IMAGE }}:${VERSION} \
             -t ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }} .
           log_message "Build complete."
