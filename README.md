@@ -12,32 +12,32 @@
 > The app serves a page showing the current version, build timestamp, and git commit SHA —
 > updated automatically on every pipeline release.
 
-![Live App](docs/screenshots/app.png)
+![Live App](docs/app.png)
 
 ### ArgoCD — Applications Overview
 > Two ArgoCD applications managing deployments: `my-nginx` (this project) and `myapp`.
 > Both show **Healthy** and **Synced** status, meaning the cluster matches Git exactly.
 
-![ArgoCD Applications](docs/screenshots/argocd-apps.png)
+![ArgoCD Applications](docs/argocd-apps.png)
 
 ### ArgoCD — Application Tree
 > The resource tree for `my-nginx` showing the full deployment topology:
 > Application → Service + Deployment + Ingress → ReplicaSet → 5 running pods.
 > Auto-sync is enabled and last synced successfully.
 
-![ArgoCD Tree](docs/screenshots/argocd-tree.png)
+![ArgoCD Tree](docs/argocd-tree.png)
 
 ### Cluster Pods
 > All pods running across namespaces: `my-nginx` (5 replicas in default), ArgoCD,
 > Prometheus, Grafana, Elasticsearch, and Ingress controller.
 
-![Cluster Pods](docs/screenshots/pods.png)
+![Cluster Pods](docs/pods.png)
 
 ### Grafana — Pod Metrics
 > Kubernetes compute resource dashboard for the `my-nginx` pod showing
 > memory usage (3.17 MiB WSS), receive/transmit bandwidth, all healthy.
 
-![Grafana Metrics](docs/screenshots/grafana.png)
+![Grafana Metrics](docs/grafana.png)
 
 ---
 
