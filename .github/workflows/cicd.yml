@@ -16,87 +16,135 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  build:
-    name: Build Image
+  release:
+    name: Semantic Release
     runs-on: self-hosted
+    outputs:
+      version: ${{ steps.semver.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install python-semantic-release
+        run: pip3 install python-semantic-release --break-system-packages --quiet
+
+      - name: Run semantic-release
+        id: semver
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          source shell/script.sh
+
+          # Get the next version without committing yet
+          VERSION=$(semantic-release version --print 2>/dev/null || true)
+
+          if [ -z "$VERSION" ]; then
+            # No bump needed — use the latest git tag
+            VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.1.0")
+            VERSION="${VERSION#v}"   # strip leading 'v' if present
+            log_message "No version bump — using existing version: $VERSION"
+          else
+            log_message "New version detected: $VERSION"
+            # Create tag, generate changelog, push tag + changelog to GitHub
+            semantic-release version
+            semantic-release changelog
+            semantic-release publish
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          log_message "Release step complete. Version: $VERSION"
+
+  build:
+    name: Build Image
+    runs-on: self-hosted
+    needs: release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
 
       - name: Build Docker image
         run: |
           source shell/script.sh
-          log_message "Building image ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }}..."
-          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }} .
+          VERSION=${{ needs.release.outputs.version }}
+          log_message "Building ${{ env.REGISTRY }}/${{ env.IMAGE }}:${VERSION}..."
+          # Dual-tag: semver for humans, SHA for traceability
+          docker build \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE }}:${VERSION} \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }} .
           log_message "Build complete."
 
   push:
     name: Push to Registry
     runs-on: self-hosted
-    needs: build
+    needs: [build, release]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4.2.2
-
-      - name: Push image to local registry
+      - name: Push both tags to local registry
         run: |
           source shell/script.sh
-          log_message "Pushing ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }}..."
+          VERSION=${{ needs.release.outputs.version }}
+          log_message "Pushing :${VERSION} and :${{ github.sha }}..."
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}:${VERSION}
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }}
           log_message "Push complete."
 
   pre-pull:
     name: Pre-pull on Nodes
     runs-on: self-hosted
-    needs: push
+    needs: [push, release]
     steps:
       - name: Pull image into k8s.io namespace on all nodes
         run: |
           source shell/script.sh
+          VERSION=${{ needs.release.outputs.version }}
           for node in $(kubectl get nodes -o jsonpath='{.items[*].status.addresses[?(@.type=="InternalIP")].address}'); do
-            log_message "Pre-pulling on node $node..."
+            log_message "Pre-pulling :${VERSION} on node $node..."
             ssh -o StrictHostKeyChecking=no admin@$node \
               "sudo ctr -n k8s.io images pull --plain-http \
-              ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }}"
+              ${{ env.REGISTRY }}/${{ env.IMAGE }}:${VERSION}"
           done
           log_message "Pre-pull complete on all nodes."
 
   deploy:
     name: Deploy to Kubernetes
     runs-on: self-hosted
-    needs: pre-pull
+    needs: [pre-pull, release]
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
 
-      - name: Update image tag in yaml and commit to Git
+      - name: Update image tag in k8s/nginx.yaml and commit to Git
         run: |
           source shell/script.sh
-          log_message "Setting image to ${{ github.sha }} in k8s/nginx.yaml..."
-          sed -i "s|image: .*mynginx.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }}|" k8s/nginx.yaml
+          VERSION=${{ needs.release.outputs.version }}
+          log_message "Setting image to ${VERSION} in k8s/nginx.yaml..."
+          sed -i "s|image: .*mynginx.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE }}:${VERSION}|" k8s/nginx.yaml
           grep "image:" k8s/nginx.yaml
 
           git config user.email "ci@github-actions"
           git config user.name "GitHub Actions"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git pull --rebase origin main
           git add k8s/nginx.yaml
-          git diff --cached --quiet || git commit -m "ci: update image to ${{ github.sha }} [skip ci]"
+          git diff --cached --quiet || git commit -m "ci: deploy ${VERSION} [skip ci]"
           git push origin main
-          log_message "Image tag committed to Git."
+          log_message "k8s/nginx.yaml committed to Git — ArgoCD will sync."
 
-      - name: Apply manifest
+      - name: Wait for ArgoCD to sync
         run: |
           source shell/script.sh
-          log_message "Applying k8s/nginx.yaml..."
-          kubectl apply -f k8s/nginx.yaml
-          log_message "Manifest applied."
-
-      - name: Wait for rollout
-        run: |
-          source shell/script.sh
-          log_message "Waiting for rollout to complete..."
-          kubectl rollout status deployment/${{ env.DEPLOYMENT }} --timeout=120s
-          log_message "Rollout complete."
+          log_message "Waiting for ArgoCD to sync..."
+          # Give ArgoCD time to detect the Git change and apply it
+          # Adjust timeout based on your ArgoCD sync interval (default 3 min)
+          kubectl wait --for=condition=available deployment/${{ env.DEPLOYMENT }} \
+            --timeout=180s -n default
+          log_message "Deployment available."
 
       - name: Verify pods are running
         run: |
@@ -107,12 +155,14 @@ jobs:
   cleanup:
     name: Cleanup
     runs-on: self-hosted
-    needs: deploy
+    needs: [deploy, release]
     if: always()
     steps:
-      - name: Remove local build image
+      - name: Remove local build images
         run: |
           source shell/script.sh
-          log_message "Removing local image..."
+          VERSION=${{ needs.release.outputs.version }}
+          log_message "Removing local images..."
+          docker rmi ${{ env.REGISTRY }}/${{ env.IMAGE }}:${VERSION} || true
           docker rmi ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }} || true
           log_message "Cleanup complete."
