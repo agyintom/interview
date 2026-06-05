@@ -119,11 +119,11 @@ jobs:
           VERSION=${{ needs.release.outputs.version }}
           log_message "Building ${{ env.REGISTRY }}/${{ env.IMAGE }}:${VERSION}..."
           docker build \
-            --build-arg VERSION=${VERSION} \                          # Injected into the app HTML
-            --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \# Build timestamp
-            --build-arg GIT_SHA=${{ github.sha }} \                   # Commit SHA for traceability
-            -t ${{ env.REGISTRY }}/${{ env.IMAGE }}:${VERSION} \      # Semver tag
-            -t ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }} # SHA tag
+            --build-arg VERSION=${VERSION} \
+            --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
+            --build-arg GIT_SHA=${{ github.sha }} \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE }}:${VERSION} \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }} \
             .
           log_message "Build complete."
 
