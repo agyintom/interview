@@ -6,7 +6,7 @@ upload_to_pypi = false
 upload_to_release = true
 commit_message = "ci: release {version} [skip ci]"
 
-version = "1.2.1"
+version = "1.2.2"
 [tool.semantic_release.commit_parser_options]
 allowed_tags = ["feat", "fix", "perf", "refactor", "ci", "docs", "style", "chore"]
 minor_tags = ["feat"]

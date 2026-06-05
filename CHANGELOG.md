@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.2.2 (2026-06-05)
+
+### Bug Fixes
+
+- Update html content
+  ([`5f47943`](https://github.com/agyintom/interview/commit/5f479435f5f84c9e2716c903f56639c7cc70f972))
+
+
 ## v1.2.1 (2026-06-05)
 
 ### Bug Fixes
