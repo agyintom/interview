@@ -130,8 +130,11 @@ jobs:
           git config user.email "ci@github-actions"
           git config user.name "GitHub Actions"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-          git pull --rebase origin main
           git add k8s/nginx.yaml
+          git stash                          # ← stash after staging
+          git pull --rebase origin main      # ← rebase on latest
+          git stash pop                      # ← restore changes
+          git diff --cached --quiet || git add k8s/nginx.yaml
           git diff --cached --quiet || git commit -m "ci: deploy ${VERSION} [skip ci]"
           git push origin main
           log_message "k8s/nginx.yaml committed to Git — ArgoCD will sync."
