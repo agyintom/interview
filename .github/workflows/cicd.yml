@@ -29,7 +29,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install python-semantic-release
-        run: pip3 install python-semantic-release --break-system-packages --quiet
+        run: |
+          pip3 install python-semantic-release --break-system-packages --quiet
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Run semantic-release
         id: semver
