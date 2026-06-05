@@ -9,7 +9,7 @@
 ## Screenshots
 
 ### Live Application
-> The app serves a page showing the current version, build timestamp, and git commit SHA —
+> The app serves a page showing the current version, build timestamp, and git commit SHA 
 > updated automatically on every pipeline release.
 
 ![Live App](docs/app.png)
@@ -47,7 +47,7 @@ Access the running app at:
 ```
 http://192.168.178.115:30619
 ```
-The page displays the current version, build date, and git commit SHA —
+The page displays the current version, build date, and git commit SHA 
 updated automatically on every release.
 
 ---
