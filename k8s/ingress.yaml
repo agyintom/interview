@@ -1,19 +1,74 @@
+# =============================================================================
+# Kubernetes Manifest — Ingress for my-nginx
+# -----------------------------------------------------------------------------
+# An Ingress resource defines how external HTTP/HTTPS traffic is routed
+# into the cluster and forwarded to the correct Service.
+#
+# Without Ingress, the only way to access the app externally is via NodePort
+# (a high random port like :30619). Ingress allows access on standard
+# port 80/443 with path-based or host-based routing.
+#
+# This Ingress requires an Ingress Controller to be installed in the cluster.
+# The controller here is nginx-ingress (ingressClassName: nginx).
+#
+# To apply manually:
+#   kubectl apply -f k8s/ingress.yaml
+#
+# To verify:
+#   kubectl get ingress -n default
+# =============================================================================
+
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: my-nginx
-  namespace: default
+  name: my-nginx       # Name of the Ingress resource
+  namespace: default   # Must be in the same namespace as the target Service
+
+  # ---------------------------------------------------------------------------
+  # Annotations — extra configuration passed to the Ingress Controller
+  # ---------------------------------------------------------------------------
+  # Annotations are controller-specific settings that go beyond the standard
+  # Kubernetes Ingress spec. These are read by the nginx-ingress controller.
+  # ---------------------------------------------------------------------------
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
+    # Rewrites the request path before forwarding to the backend Service.
+    # Example: a request to /app/page is rewritten to /page before hitting nginx.
+    # Here path is /, so the rewrite has no effect — included as best practice
+    # for when path-based routing is added later (e.g. /my-nginx → /)
+
 spec:
+
+  # ---------------------------------------------------------------------------
+  # Ingress Class
+  # ---------------------------------------------------------------------------
+  # Specifies which Ingress Controller should handle this resource.
+  # 'nginx' refers to the nginx-ingress controller installed in the cluster.
+  # If you had Traefik installed you would use 'traefik' here instead.
+  # Run 'kubectl get ingressclass' to see available classes.
+  # ---------------------------------------------------------------------------
   ingressClassName: nginx
+
+  # ---------------------------------------------------------------------------
+  # Rules — defines how incoming requests are routed
+  # ---------------------------------------------------------------------------
+  # Each rule can optionally specify a host (domain name).
+  # Omitting the host field (as done here) means the rule matches ALL hosts,
+  # which allows access via IP address without needing a domain name.
+  # ---------------------------------------------------------------------------
   rules:
   - http:
       paths:
-      - path: /
-        pathType: Prefix
+      - path: /           # Match all requests starting with /
+                          # To route only /myapp use path: /myapp
+
+        pathType: Prefix  # Prefix = match any path that starts with the value above
+                          # Exact  = only match the exact path
+                          # ImplementationSpecific = controller decides
+
+        # Backend — the Service to forward matching requests to
         backend:
           service:
-            name: my-nginx
+            name: my-nginx   # Must match the Service name in nginx.yaml
             port:
-              number: 80
+              number: 80     # Must match the Service port in nginx.yaml
