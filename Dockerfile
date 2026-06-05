@@ -7,7 +7,7 @@ ARG GIT_SHA
 RUN echo "<html> \
   <head><title>My Nginx App</title></head> \
   <body> \
-    <h1>My Nginx App v2</h1> \
+    <h1>My Nginx App v1.2</h1> \
     <table> \
       <tr><td><b>Version</b></td><td>${VERSION}</td></tr> \
       <tr><td><b>Built</b></td><td>${BUILD_DATE}</td></tr> \
