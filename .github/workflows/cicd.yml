@@ -40,17 +40,14 @@ jobs:
         run: |
           source shell/script.sh
 
-          # Get the next version without committing yet
           VERSION=$(semantic-release version --print 2>/dev/null || true)
 
           if [ -z "$VERSION" ]; then
-            # No bump needed — use the latest git tag
             VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.1.0")
-            VERSION="${VERSION#v}"   # strip leading 'v' if present
+            VERSION="${VERSION#v}"
             log_message "No version bump — using existing version: $VERSION"
           else
             log_message "New version detected: $VERSION"
-            # Create tag, generate changelog, push tag + changelog to GitHub
             semantic-release version
             semantic-release changelog
             semantic-release publish
@@ -118,25 +115,25 @@ jobs:
     runs-on: self-hosted
     needs: [pre-pull, release]
     steps:
-      - name: Checkout
+      - name: Checkout latest main
         uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0
+          ref: main                        # always get the latest main
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update image tag in k8s/nginx.yaml and commit to Git
         run: |
           source shell/script.sh
           VERSION=${{ needs.release.outputs.version }}
           log_message "Setting image to ${VERSION} in k8s/nginx.yaml..."
+
           sed -i "s|image: .*mynginx.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE }}:${VERSION}|" k8s/nginx.yaml
           grep "image:" k8s/nginx.yaml
 
           git config user.email "ci@github-actions"
           git config user.name "GitHub Actions"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-          git stash || true
-          git pull --rebase origin main
-          git stash pop || true
           git add k8s/nginx.yaml
           git diff --cached --quiet || git commit -m "ci: deploy ${VERSION} [skip ci]"
           git push origin main
@@ -146,8 +143,6 @@ jobs:
         run: |
           source shell/script.sh
           log_message "Waiting for ArgoCD to sync..."
-          # Give ArgoCD time to detect the Git change and apply it
-          # Adjust timeout based on your ArgoCD sync interval (default 3 min)
           kubectl wait --for=condition=available deployment/${{ env.DEPLOYMENT }} \
             --timeout=180s -n default
           log_message "Deployment available."
