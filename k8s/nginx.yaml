@@ -25,7 +25,7 @@ metadata:
   name: my-nginx   # Name of the deployment — referenced by kubectl and ArgoCD
 
 spec:
-  replicas: 5   # Number of pod copies to run simultaneously
+  replicas: 4   # Number of pod copies to run simultaneously
                 # Increase for high availability, decrease to save resources
                 # Change this value and push to Git — ArgoCD will scale automatically
 
