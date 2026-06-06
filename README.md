@@ -44,7 +44,7 @@ updated automatically on every release.
 
 ### Infrastructure
 - **Kubernetes cluster** — bare metal, self-hosted (kubeadm), 1 master + 1 worker node
-- **Private Docker registry** — running at `192.168.178.115:5000` (plain HTTP)
+- **Private Docker registry** — running at `192.168.178.115:8085` (plain HTTP)
 - **Nginx Ingress Controller** — routes external traffic into the cluster
 - **ArgoCD** — GitOps continuous delivery, watches this repo and syncs the cluster
 - **Prometheus + Grafana** — cluster and pod monitoring
