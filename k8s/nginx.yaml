@@ -91,4 +91,4 @@ spec:
   # NodePort exposes the service on a static port on every node
   # Kubernetes assigns a random port in the range 30000-32767
   # Access via: http://<any-node-ip>:<assigned-nodeport>
-  type: NodePort
+  type: ClusterIP
