@@ -37,7 +37,8 @@
 > Kubernetes compute resource dashboard for the `my-nginx` pod showing
 > memory usage (3.17 MiB WSS), receive/transmit bandwidth, all healthy.
 
-![Grafana Metrics](docs/grafana.png)
+![Grafana Metrics](docs/grafana1.png)
+![Grafana Metrics](docs/grafana2.png)
 
 ---
 
