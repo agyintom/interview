@@ -27,11 +27,11 @@ permissions:
 # Global environment variables shared across all jobs
 # -----------------------------------------------------------------------------
 env:
-  REGISTRY: 192.168.178.115:5000   # Private local Docker registry
-  IMAGE: mynginx                    # Image name in the registry
-  DEPLOYMENT: my-nginx              # Kubernetes deployment name
-  CONTAINER: my-nginx               # Container name inside the deployment
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # Suppress Node.js 20 deprecation warnings
+  REGISTRY: 192.168.178.115:5000            # Private local Docker registry
+  IMAGE: mynginx                             # Image name in the registry
+  DEPLOYMENT: my-nginx                       # Kubernetes deployment name
+  CONTAINER: my-nginx                        # Container name inside the deployment
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true   # Suppress Node.js 20 deprecation warnings
 
 jobs:
 
@@ -97,11 +97,9 @@ jobs:
   # ---------------------------------------------------------------------------
   # JOB 2: Build Docker Image
   # ---------------------------------------------------------------------------
-  # Builds the Docker image and tags it with two identifiers:
-  #   :<semver>  — human-readable version (e.g. 1.2.3), used by ArgoCD
-  #   :<sha>     — full git SHA, for traceability back to the exact commit
-  #
-  # Build args are passed into the Dockerfile so the app can display them.
+  # Builds the Docker image and tags it with the semver version only.
+  # The GIT_SHA is still passed as a build arg so it appears in the app page,
+  # but we no longer push a separate SHA tag to keep the registry clean.
   # ---------------------------------------------------------------------------
   build:
     name: Build Image
@@ -123,28 +121,27 @@ jobs:
             --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
             --build-arg GIT_SHA=${{ github.sha }} \
             -t ${{ env.REGISTRY }}/${{ env.IMAGE }}:${VERSION} \
-            -t ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }} \
             .
           log_message "Build complete."
 
   # ---------------------------------------------------------------------------
   # JOB 3: Push to Registry
   # ---------------------------------------------------------------------------
-  # Pushes both image tags (semver + SHA) to the private local registry.
-  # The registry runs at 192.168.178.115:5000 over plain HTTP.
+  # Pushes only the semver tag to the private local registry.
+  # SHA tags are no longer pushed to prevent image accumulation.
+  # One release = one image tag in the registry.
   # ---------------------------------------------------------------------------
   push:
     name: Push to Registry
     runs-on: self-hosted
-    needs: [build, release]   # Both tags must exist before pushing
+    needs: [build, release]
     steps:
-      - name: Push both tags to local registry
+      - name: Push semver tag to local registry
         run: |
           source shell/script.sh
           VERSION=${{ needs.release.outputs.version }}
-          log_message "Pushing :${VERSION} and :${{ github.sha }}..."
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}:${VERSION}      # Semver tag
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }} # SHA tag
+          log_message "Pushing ${{ env.REGISTRY }}/${{ env.IMAGE }}:${VERSION}..."
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}:${VERSION}
           log_message "Push complete."
 
   # ---------------------------------------------------------------------------
@@ -254,7 +251,7 @@ jobs:
   # ---------------------------------------------------------------------------
   # JOB 6: Cleanup
   # ---------------------------------------------------------------------------
-  # Removes the locally built Docker images from the runner machine to
+  # Removes the locally built Docker image from the runner machine to
   # prevent disk space from filling up over time.
   #
   # Runs with 'if: always()' so cleanup happens even if deploy fails,
@@ -266,11 +263,10 @@ jobs:
     needs: [deploy, release]
     if: always()   # Always run cleanup even if upstream jobs fail
     steps:
-      - name: Remove local build images
+      - name: Remove local build image
         run: |
           source shell/script.sh
           VERSION=${{ needs.release.outputs.version }}
-          log_message "Removing local images..."
-          docker rmi ${{ env.REGISTRY }}/${{ env.IMAGE }}:${VERSION} || true  # || true = don't fail if already removed
-          docker rmi ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }} || true
+          log_message "Removing local image..."
+          docker rmi ${{ env.REGISTRY }}/${{ env.IMAGE }}:${VERSION} || true
           log_message "Cleanup complete."
