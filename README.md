@@ -147,21 +147,24 @@ absolute latest state of the branch, not the SHA that triggered the run.
 
 ## Key Design Decisions
 
-**Why VirtualBox over kind/minikube?**
+**VirtualBox**
 VirtualBox provides a realistic multi-node bare metal environment. Running
 kubeadm across two separate VMs exposed real infrastructure challenges 
 node networking, containerd configuration, registry access that single-node
 or managed solutions abstract away entirely.
 
-**Why bare metal kubeadm over k3s?**
+**Bare metal kubeadm**
 kubeadm mirrors production Kubernetes more closely. k3s bundles components
 and makes opinionated decisions that don't reflect how clusters are run
 in enterprise environments.
 
-**Why plain HTTP registry?**
-Intentional simplicity for a homelab setup. The containerd workaround is
-documented and the pre-pull step in the pipeline compensates for the
-missing TLS configuration.
+**Docker registry UI**
+The Docker Registry UI provides a visual interface for browsing images, 
+tags, and content digests stored in the private registry 
+making it easy to verify that the pipeline pushed the correct image and tag after every release. 
+Without it, inspecting the registry requires raw API calls via curl. 
+Having a UI makes the demo more accessible during the interview and gives immediate visual confirmation
+that the full pipeline  build, tag, push completed successfully.
 
 **Why ClusterIP + Ingress over NodePort?**
 NodePort exposes high random ports and bypasses the ingress layer.
