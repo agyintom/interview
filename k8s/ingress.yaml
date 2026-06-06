@@ -58,6 +58,7 @@ spec:
   # ---------------------------------------------------------------------------
   rules:
   - http:
+  - host: my-nginx.local
       paths:
       - path: /           # Match all requests starting with /
                           # To route only /myapp use path: /myapp
