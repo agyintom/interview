@@ -1,6 +1,6 @@
 # My Nginx App — Kubernetes CI/CD Project
 
-> Forked from the interview task repository. This is my personal solution
+> Forked from the interview task repository. This solution
 > demonstrating a full GitOps-based Kubernetes deployment pipeline with
 > semantic versioning, and automated releases.
 
@@ -36,8 +36,8 @@ This project runs entirely on a **local bare metal Kubernetes cluster** built on
 
 | VM | Role | OS | CPU | RAM | Disk |
 |---|---|---|---|---|---|
-| K8s-Master | Control plane + runner | Ubuntu 22.04 ARM 64-bit | 2 vCPU | 8 GB | 80 GB |
-| K8s-Node02 | Worker node | Ubuntu 22.04 ARM 64-bit | 2 vCPU | 8 GB | 80 GB |
+| K8s-Master | Control plane + runner | Ubuntu 24.04 ARM 64-bit | 2 vCPU | 8 GB | 80 GB |
+| K8s-Node02 | Worker node | Ubuntu 24.04 ARM 64-bit | 2 vCPU | 8 GB | 25 GB |
 
 **Network:** Bridged adapter (Intel PRO/1000 MT Desktop via Wi-Fi) — both VMs are on the same local network as the host and accessible by IP.
 
@@ -60,8 +60,7 @@ updated automatically on every release.
 
 ### Infrastructure
 - **Kubernetes cluster** — bare metal kubeadm on VirtualBox VMs (1 master + 1 worker)
-- **Private Docker registry** — running at `192.168.178.115:5000` (plain HTTP)
-- **Docker Registry UI** — visual interface for browsing images at `192.168.178.115:8085`
+- **Private Docker Registry UI** — visual interface for browsing images at `192.168.178.115:8085`
 - **Nginx Ingress Controller** — routes external traffic into the cluster
 - **ArgoCD** — GitOps continuous delivery, watches this repo and syncs the cluster
 - **Prometheus + Grafana** — cluster and pod monitoring with custom dashboard
@@ -150,8 +149,8 @@ absolute latest state of the branch, not the SHA that triggered the run.
 
 **Why VirtualBox over kind/minikube?**
 VirtualBox provides a realistic multi-node bare metal environment. Running
-kubeadm across two separate VMs exposed real infrastructure challenges —
-node networking, containerd configuration, registry access — that single-node
+kubeadm across two separate VMs exposed real infrastructure challenges 
+node networking, containerd configuration, registry access that single-node
 or managed solutions abstract away entirely.
 
 **Why bare metal kubeadm over k3s?**
@@ -166,7 +165,7 @@ missing TLS configuration.
 
 **Why ClusterIP + Ingress over NodePort?**
 NodePort exposes high random ports and bypasses the ingress layer.
-ClusterIP + Ingress is the production-standard approach — single entry
+ClusterIP + Ingress is the production-standard approach single entry
 point on port 80, supports path routing and future TLS termination.
 
 **Why python-semantic-release over Node.js tools?**
