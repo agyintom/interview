@@ -2,30 +2,46 @@
 
 > Forked from the interview task repository. This is my personal solution
 > demonstrating a full GitOps-based Kubernetes deployment pipeline with
-> semantic versioning, and automated releases
+> semantic versioning, and automated releases.
 
 ---
 
 ## Screenshots
 
 ### Live Application
-> The app serves a page showing the current version, build timestamp, and git commit SHA 
+> The app serves a page showing the current version, build timestamp, and git commit SHA —
 > updated automatically on every pipeline release.
 
 ![Live App](docs/app.png)
 
 ### ArgoCD — Applications Overview
-> ArgoCD applications managing deployments: `my-nginx` (this project)
+> ArgoCD applications managing deployments: `my-nginx` (this project).
 > Showing **Healthy** and **Synced** status, meaning the cluster matches Git exactly.
 
 ![ArgoCD Applications](docs/argocd-apps.png)
 
 ### Grafana — Pod Metrics
 > Kubernetes compute resource dashboard for the `my-nginx` pod showing
-> memory usage,running pods,desired replicas, deployment health, receive/transmit bandwidth, all healthy.
+> memory usage, running pods, desired replicas, deployment health, receive/transmit bandwidth — all healthy.
 
 ![Grafana Metrics](docs/grafana1.png)
 ![Grafana Metrics](docs/grafana2.png)
+
+---
+
+## Infrastructure
+
+This project runs entirely on a **local bare metal Kubernetes cluster** built on
+**Oracle VirtualBox** virtual machines running on a Mac host (Apple Silicon — ARM 64-bit).
+
+| VM | Role | OS | CPU | RAM | Disk |
+|---|---|---|---|---|---|
+| K8s-Master | Control plane + runner | Ubuntu 22.04 ARM 64-bit | 2 vCPU | 8 GB | 80 GB |
+| K8s-Node02 | Worker node | Ubuntu 22.04 ARM 64-bit | 2 vCPU | 8 GB | 80 GB |
+
+**Network:** Bridged adapter (Intel PRO/1000 MT Desktop via Wi-Fi) — both VMs are on the same local network as the host and accessible by IP.
+
+No cloud providers were used — everything runs locally on VirtualBox.
 
 ---
 
@@ -35,7 +51,7 @@ Access the running app at:
 ```
 http://my-nginx.local:30619/
 ```
-The page displays the current version, build date, and git commit SHA 
+The page displays the current version, build date, and git commit SHA —
 updated automatically on every release.
 
 ---
@@ -43,11 +59,12 @@ updated automatically on every release.
 ## What Was Built
 
 ### Infrastructure
-- **Kubernetes cluster** — bare metal, self-hosted (kubeadm), 1 master + 1 worker node
-- **Private Docker registry** — running at `192.168.178.115:8085` (plain HTTP)
+- **Kubernetes cluster** — bare metal kubeadm on VirtualBox VMs (1 master + 1 worker)
+- **Private Docker registry** — running at `192.168.178.115:5000` (plain HTTP)
+- **Docker Registry UI** — visual interface for browsing images at `192.168.178.115:8085`
 - **Nginx Ingress Controller** — routes external traffic into the cluster
 - **ArgoCD** — GitOps continuous delivery, watches this repo and syncs the cluster
-- **Prometheus + Grafana** — cluster and pod monitoring
+- **Prometheus + Grafana** — cluster and pod monitoring with custom dashboard
 
 ### Application
 - Custom Dockerfile based on `nginx:alpine`
@@ -90,8 +107,9 @@ Six sequential jobs on every push to `main`:
 ├── .github/
 │   └── workflows/
 │       └── ci-cd.yml          # GitHub Actions pipeline (6 jobs)
-├── docs/
-│   └── screenshots/           # Screenshots used in this README
+├── argocd/
+│   └── application.yaml       # ArgoCD Application manifest
+├── docs/                      # Screenshots used in this README
 ├── k8s/
 │   ├── nginx.yaml             # Deployment + Service (managed by pipeline)
 │   └── ingress.yaml           # Ingress resource
@@ -130,14 +148,21 @@ absolute latest state of the branch, not the SHA that triggered the run.
 
 ## Key Design Decisions
 
-**Why bare metal over kind/minikube?**
-More realistic production-like environment. Exposed real infrastructure
-challenges (node networking, containerd configuration, registry access)
-that managed solutions abstract away.
+**Why VirtualBox over kind/minikube?**
+VirtualBox provides a realistic multi-node bare metal environment. Running
+kubeadm across two separate VMs exposed real infrastructure challenges —
+node networking, containerd configuration, registry access — that single-node
+or managed solutions abstract away entirely.
+
+**Why bare metal kubeadm over k3s?**
+kubeadm mirrors production Kubernetes more closely. k3s bundles components
+and makes opinionated decisions that don't reflect how clusters are run
+in enterprise environments.
 
 **Why plain HTTP registry?**
-Intentional simplicity for a homelab. The containerd workaround is
-documented and the pre-pull approach in the pipeline compensates.
+Intentional simplicity for a homelab setup. The containerd workaround is
+documented and the pre-pull step in the pipeline compensates for the
+missing TLS configuration.
 
 **Why ClusterIP + Ingress over NodePort?**
 NodePort exposes high random ports and bypasses the ingress layer.
@@ -147,7 +172,7 @@ point on port 80, supports path routing and future TLS termination.
 **Why python-semantic-release over Node.js tools?**
 The runner had Python 3.12 available but no Node.js. python-semantic-release
 provides the same Conventional Commits-driven versioning with no additional
-runtime dependencies.
+runtime dependencies to install.
 
 **Why commit image tag back to Git instead of kubectl apply?**
 ArgoCD uses Git as the source of truth. A direct `kubectl apply` would be
@@ -189,3 +214,4 @@ git add k8s/nginx.yaml
 git commit -m "fix: rollback to vX.Y.Z"
 git push origin main
 ```
+
