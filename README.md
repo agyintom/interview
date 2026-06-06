@@ -20,19 +20,6 @@
 
 ![ArgoCD Applications](docs/argocd-apps.png)
 
-### ArgoCD — Application Tree
-> The resource tree for `my-nginx` showing the full deployment topology:
-> Application → Service + Deployment + Ingress → ReplicaSet → 5 running pods.
-> Auto-sync is enabled and last synced successfully.
-
-![ArgoCD Tree](docs/argocd-tree.png)
-
-### Cluster Pods
-> All pods running across namespaces: `my-nginx` (5 replicas in default), ArgoCD,
-> Prometheus, Grafana, Elasticsearch, and Ingress controller.
-
-![Cluster Pods](docs/pods.png)
-
 ### Grafana — Pod Metrics
 > Kubernetes compute resource dashboard for the `my-nginx` pod showing
 > memory usage (3.17 MiB WSS), receive/transmit bandwidth, all healthy.
