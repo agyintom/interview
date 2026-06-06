@@ -2,6 +2,22 @@
 
 <!-- version list -->
 
+## v1.2.3 (2026-06-06)
+
+### Bug Fixes
+
+- Restore registry images after volume reset
+  ([`30de148`](https://github.com/agyintom/interview/commit/30de148145b29405940511afba1859a05061bc5c))
+
+- Restore registry images after volume reset
+  ([`7d1168e`](https://github.com/agyintom/interview/commit/7d1168e7397eb93236cee7e019c4d3b75af18af6))
+
+### Chores
+
+- Scale my-nginx to 5 replicas
+  ([`e758fb2`](https://github.com/agyintom/interview/commit/e758fb2309f6cd7b77fe5ba00888637ccbb4125b))
+
+
 ## v1.2.2 (2026-06-05)
 
 ### Bug Fixes
