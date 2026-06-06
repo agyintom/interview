@@ -15,14 +15,14 @@
 ![Live App](docs/app.png)
 
 ### ArgoCD — Applications Overview
-> Two ArgoCD applications managing deployments: `my-nginx` (this project) and `myapp`.
-> Both show **Healthy** and **Synced** status, meaning the cluster matches Git exactly.
+> ArgoCD applications managing deployments: `my-nginx` (this project)
+> Showing **Healthy** and **Synced** status, meaning the cluster matches Git exactly.
 
 ![ArgoCD Applications](docs/argocd-apps.png)
 
 ### Grafana — Pod Metrics
 > Kubernetes compute resource dashboard for the `my-nginx` pod showing
-> memory usage (3.17 MiB WSS), receive/transmit bandwidth, all healthy.
+> memory usage,running pods,desired replicas, deployment health, receive/transmit bandwidth, all healthy.
 
 ![Grafana Metrics](docs/grafana1.png)
 ![Grafana Metrics](docs/grafana2.png)
