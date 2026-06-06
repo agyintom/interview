@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.2.4 (2026-06-06)
+
+### Bug Fixes
+
+- Add hostname to my-nginx ingress
+  ([`f2a9433`](https://github.com/agyintom/interview/commit/f2a9433e7e5b783a2870f7afbc2c83541f88e585))
+
+
 ## v1.2.3 (2026-06-06)
 
 ### Bug Fixes
