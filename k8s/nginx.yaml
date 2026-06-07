@@ -25,7 +25,7 @@ metadata:
   name: my-nginx   # Name of the deployment — referenced by kubectl and ArgoCD
 
 spec:
-  replicas: 4   # Number of pod copies to run simultaneously
+  replicas: 5   # Number of pod copies to run simultaneously
                 # Increase for high availability, decrease to save resources
                 # Change this value and push to Git — ArgoCD will scale automatically
 
@@ -49,7 +49,7 @@ spec:
         # Image is automatically updated by the CI/CD pipeline on each release
         # Format: <registry>/<name>:<semver-tag>
         # Do not edit this line manually — the pipeline manages it
-        image: 192.168.178.115:5000/mynginx:1.2.4
+        image: 192.168.178.115:5000/mynginx:1.2.3
 
         # IfNotPresent — use the locally cached image if available
         # This is required because the containerd CRI layer has a bug with
@@ -88,10 +88,7 @@ spec:
   - port: 80         # Port the Service listens on (cluster-internal)
     targetPort: 80   # Port on the pod to forward traffic to (must match containerPort)
 
-  # ClusterIP exposes the service only inside the cluster — it has no
-  # external IP and cannot be accessed directly from outside.
-  # All external traffic reaches the app through the Ingress controller,
-  # which routes requests from http://my-nginx.local to this service.
-  # This is the production-standard approach — cleaner than NodePort
-  # and allows the Ingress layer to handle routing, SSL, and load balancing.
-  type: ClusterIP
+  # NodePort exposes the service on a static port on every node
+  # Kubernetes assigns a random port in the range 30000-32767
+  # Access via: http://<any-node-ip>:<assigned-nodeport>
+  type: NodePort
