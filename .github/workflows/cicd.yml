@@ -57,7 +57,7 @@ jobs:
       version: ${{ steps.semver.outputs.version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0                     # Full git history needed for semver calculation
           token: ${{ secrets.GITHUB_TOKEN }} # Token needed to push tags and changelog
@@ -107,7 +107,7 @@ jobs:
     needs: release   # Wait for version to be determined before building
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -198,7 +198,7 @@ jobs:
     needs: [pre-pull, release]   # Image must be pre-pulled before deploying
     steps:
       - name: Checkout latest main
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           ref: main                          # Always get latest main, not the trigger SHA
