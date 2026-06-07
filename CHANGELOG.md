@@ -2,6 +2,22 @@
 
 <!-- version list -->
 
+## v1.2.6 (2026-06-07)
+
+### Bug Fixes
+
+- Increase revision history limit from 11 to 12
+  ([`57ee336`](https://github.com/agyintom/interview/commit/57ee33639a884ee53290bf102787d80b3d4fb883))
+
+### Chores
+
+- Restore to v1.2.5 [skip ci]
+  ([`2d67cd7`](https://github.com/agyintom/interview/commit/2d67cd77f3bfc119dbf6a456d2e6cb21f31892cf))
+
+- Rollback to v1.2.3 [skip ci]
+  ([`a29f7ad`](https://github.com/agyintom/interview/commit/a29f7ad6623d88dfce5786f2bf04e885c4a32143))
+
+
 ## v1.2.5 (2026-06-07)
 
 ### Bug Fixes
