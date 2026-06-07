@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.2.5 (2026-06-07)
+
+### Bug Fixes
+
+- Rollback to v1.2.3
+  ([`6de4fd9`](https://github.com/agyintom/interview/commit/6de4fd944fada369f309952804b904337fdbefee))
+
+### Chores
+
+- Scale my-nginx to 4 replicas
+  ([`3e6a170`](https://github.com/agyintom/interview/commit/3e6a170dabe013e5168eb14115f6a17abbd356f7))
+
+
 ## v1.2.4 (2026-06-06)
 
 ### Bug Fixes
