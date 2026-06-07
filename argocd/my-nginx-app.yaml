@@ -38,7 +38,7 @@ spec:
     targetRevision: main   # Branch to track — any push to main triggers a sync check
     path: k8s              # Folder inside the repo containing the Kubernetes manifests
                            # ArgoCD will apply all .yaml files found in this directory
-
+  revisionHistoryLimit: 11
   # ---------------------------------------------------------------------------
   # Destination — where ArgoCD deploys to
   # ---------------------------------------------------------------------------
