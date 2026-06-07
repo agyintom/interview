@@ -88,7 +88,10 @@ spec:
   - port: 80         # Port the Service listens on (cluster-internal)
     targetPort: 80   # Port on the pod to forward traffic to (must match containerPort)
 
-  # NodePort exposes the service on a static port on every node
-  # Kubernetes assigns a random port in the range 30000-32767
-  # Access via: http://<any-node-ip>:<assigned-nodeport>
+  # ClusterIP exposes the service only inside the cluster — it has no
+  # external IP and cannot be accessed directly from outside.
+  # All external traffic reaches the app through the Ingress controller,
+  # which routes requests from http://my-nginx.local to this service.
+  # This is the production-standard approach — cleaner than NodePort
+  # and allows the Ingress layer to handle routing, SSL, and load balancing.
   type: ClusterIP
