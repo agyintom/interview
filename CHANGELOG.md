@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.2.7 (2026-06-08)
+
+### Bug Fixes
+
+- Change service type from NodePort to ClusterIP
+  ([`5a5c7e5`](https://github.com/agyintom/interview/commit/5a5c7e52c3f2221327bdedc80f53ecda1959e300))
+
+
 ## v1.2.6 (2026-06-07)
 
 ### Bug Fixes
