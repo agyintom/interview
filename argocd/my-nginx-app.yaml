@@ -19,6 +19,7 @@ metadata:
   namespace: argocd     # Must be deployed into the argocd namespace
 
 spec:
+  revisionHistoryLimit: 12
 
   # ---------------------------------------------------------------------------
   # Project
@@ -38,7 +39,7 @@ spec:
     targetRevision: main   # Branch to track — any push to main triggers a sync check
     path: k8s              # Folder inside the repo containing the Kubernetes manifests
                            # ArgoCD will apply all .yaml files found in this directory
-  revisionHistoryLimit: 12
+  
   # ---------------------------------------------------------------------------
   # Destination — where ArgoCD deploys to
   # ---------------------------------------------------------------------------
