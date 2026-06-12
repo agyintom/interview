@@ -1,6 +1,6 @@
 # My Nginx App — Kubernetes CI/CD Project
 
-> Forked from the interview task repository. This solution
+> Forked from the interview task repository. This is a peronal solution
 > demonstrating a full GitOps-based Kubernetes deployment pipeline with
 > semantic versioning, and automated releases.
 
@@ -9,7 +9,7 @@
 ## Screenshots
 
 ### Live Application
-> The app serves a page showing the current version, build timestamp, and git commit SHA —
+> The app serves a page showing the current version, build timestamp, and git commit SHA 
 > updated automatically on every pipeline release.
 
 ![Live App](docs/app.png)
@@ -41,7 +41,7 @@ This project runs entirely on a **local bare metal Kubernetes cluster** built on
 
 **Network:** Bridged adapter (Intel PRO/1000 MT Desktop via Wi-Fi) — both VMs are on the same local network as the host and accessible by IP.
 
-No cloud providers were used — everything runs locally on VirtualBox.
+No cloud providers were used  everything runs locally on VirtualBox.
 
 ---
 
@@ -51,7 +51,7 @@ Access the running app at:
 ```
 http://my-nginx.local:30619/
 ```
-The page displays the current version, build date, and git commit SHA —
+The page displays the current version, build date, and git commit SHA 
 updated automatically on every release.
 
 ---
